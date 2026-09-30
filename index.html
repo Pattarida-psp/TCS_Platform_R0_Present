@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="TCS Platform — Business Architecture × Gartner DBTP (Executive presentation)">
+<meta name="theme-color" content="#10243E">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📱</text></svg>">
+<title>TCS Platform — Business Architecture × DBTP</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#EEF2F5; --paper:#FFFFFF; --ink:#16222E; --muted:#5A6978; --line:#D6DEE5; --phone:#10243E; --screen:#F6F9FB;
+  --cx:#2358C6; --eco:#D96C2C; --iot:#7C4DC4; --is:#4E9F3D; --da:#10243E;
+  --buyer:#2358C6; --partner:#0E8074; --comp:#B07C10; --compet:#B23A3A; --biz:#16222E; --admin:#5B6B7A;
+  --tcs:#2358C6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1720; --paper:#17222E; --ink:#E6EDF3; --muted:#9AAAB9; --line:#2A3947; --phone:#050B12; --screen:#1B2733;
+    --da:#2B4A70; --biz:#C9D5E0;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1720; --paper:#17222E; --ink:#E6EDF3; --muted:#9AAAB9; --line:#2A3947; --phone:#050B12; --screen:#1B2733;
+  --da:#2B4A70; --biz:#C9D5E0;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Thai",Tahoma,"Leelawadee UI",sans-serif;line-height:1.55;font-size:15px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--tcs);outline-offset:2px}
+
+header{max-width:1400px;margin:0 auto;padding:28px 24px 8px;display:flex;flex-wrap:wrap;gap:16px 32px;align-items:end;justify-content:space-between}
+h1{margin:0;font-size:clamp(24px,3.2vw,36px);font-weight:700;letter-spacing:-.01em;line-height:1.2}
+.sub{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+.tools button{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:14px}
+.tools button[aria-pressed="true"]{background:var(--tcs);border-color:var(--tcs);color:#fff}
+
+.legend{max-width:1400px;margin:0 auto;padding:8px 24px 0;display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--muted);font-size:14.5px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;background:var(--c);vertical-align:-1px}
+
+main{max-width:1700px;margin:0 auto;padding:16px 24px 40px}
+.fit{position:relative;width:100%}
+.stage{position:absolute;left:0;top:0;transform-origin:0 0}
+.stage .phone{position:absolute;width:660px}
+.stage .card{position:absolute;width:400px;cursor:grab;touch-action:none;user-select:none}
+.stage .card.dragging{cursor:grabbing;z-index:5;box-shadow:0 10px 28px rgba(16,36,62,.22)}
+.stage .card.moved .avatar{outline:2px dashed color-mix(in srgb,var(--c) 60%,transparent);outline-offset:3px}
+.stack .stage .card{cursor:default;touch-action:auto;user-select:auto}
+.wires{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.wires line{stroke:var(--line);stroke-width:2.2;stroke-dasharray:7 6}
+.wires circle{fill:var(--muted)}
+.addcard{position:absolute}
+/* narrow screens: stacked */
+.stack .stage{position:static;transform:none!important;width:auto!important;height:auto!important;display:flex;flex-direction:column;gap:14px}
+.stack .stage .phone,.stack .stage .card,.stack .addcard{position:static;width:auto}
+.stack .wires{display:none}
+.stack .fit{height:auto!important}
+/* stakeholder cards */
+.card{--tint:color-mix(in srgb,var(--c) 13%,var(--paper));background:var(--tint);border:1.5px solid color-mix(in srgb,var(--c) 45%,transparent);
+  border-radius:18px;padding:14px 18px 14px 14px;position:relative;display:grid;grid-template-columns:66px 1fr;gap:4px 14px;align-items:start}
+.avatar{width:66px;height:66px;border-radius:50%;background:var(--c);display:grid;place-items:center;grid-row:1 / span 2;align-self:center}
+.avatar svg{width:38px;height:38px;fill:#fff}
+.card h3{margin:0;font-size:24px;font-weight:700;line-height:1.25;align-self:end;color:var(--ink)}
+.card ul{margin:0;padding:0;list-style:none;grid-column:2}
+.card li{padding-left:16px;position:relative;color:var(--ink);opacity:.85;font-size:18.5px;line-height:1.45}
+.card li::before{content:"";position:absolute;left:1px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--c)}
+.card .empty{font-style:italic;color:var(--muted);font-size:17px;margin:0;grid-column:2}
+.edit .card,.edit .ring{cursor:pointer}
+.edit .card:hover{box-shadow:0 0 0 2px var(--c)}
+.addcard{display:none;border:1.5px dashed var(--line);background:transparent;border-radius:12px;padding:10px;cursor:pointer;color:var(--muted)}
+.edit .addcard{display:block}
+
+/* phone */
+.phone{background:var(--phone);border-radius:44px;padding:16px 18px 22px;color:#fff}
+.notch{width:110px;height:9px;border-radius:5px;background:#2C3F58;margin:0 auto 12px}
+.phone h2{margin:0;text-align:center;font-size:28px;font-weight:700}
+.phone .hint{margin:2px 0 14px;text-align:center;color:#9FB2C8;font-size:15px}
+.screen{background:var(--screen);border-radius:26px;padding:18px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;gap:14px;position:relative}
+.ring{aspect-ratio:1;border-radius:50%;border:3px solid var(--rc);background:color-mix(in srgb,var(--rc) 8%,transparent);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:11%;
+  transition:opacity .2s, transform .2s;color:var(--ink);min-width:0}
+.ring.da{grid-column:1 / -1;width:62%;justify-self:center;background:var(--rc);border:none;color:#fff;margin:-8% 0}
+.ring .t{font-weight:700;color:var(--rc);font-size:19px;line-height:1.2}
+.ring.da .t{color:#fff}
+.ring .e{font-size:13px;color:var(--muted);margin:2px 0 6px}
+.ring.da .e{color:#B9C8D8}
+.ring ul{list-style:none;margin:0;padding:0;font-size:16px;font-weight:500;line-height:1.35}
+.ring li+li{margin-top:3px}
+.ring .n{position:absolute;opacity:0}
+.ring.dim{opacity:.18}
+.ring.focus{transform:scale(1.03)}
+.r-cx{grid-row:1}.r-eco{grid-row:1}.r-da{grid-row:2}.r-iot{grid-row:3}.r-is{grid-row:3}
+
+.stats{margin-top:14px;display:flex;justify-content:center;flex-wrap:wrap;gap:6px 14px;font-size:15px;color:#B9C8D8}
+.stats b{color:#fff;font-weight:600}
+
+footer{max-width:1400px;margin:0 auto;padding:0 24px 32px;color:var(--muted);font-size:13px}
+
+/* editor */
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--paper);color:var(--ink);width:min(520px,92vw);padding:20px}
+dialog::backdrop{background:rgba(10,20,30,.45)}
+dialog h4{margin:0 0 12px;font-size:17px}
+dialog label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+dialog input,dialog textarea,dialog select{width:100%;font:inherit;color:var(--ink);background:var(--screen);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+dialog textarea{min-height:170px;resize:vertical}
+.drow{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.drow button{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:7px 14px;cursor:pointer}
+.drow .pri{background:var(--tcs);color:#fff;border-color:var(--tcs)}
+.drow .del{margin-right:auto;color:var(--compet)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:8px 16px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+
+@media (max-width:520px){
+  .screen{padding:10px;gap:8px}
+  .ring{padding:11%}
+  .ring .t{font-size:13px}.ring .e{display:none}.ring ul{font-size:10.5px}
+  .phone{border-radius:30px;padding:12px 10px 16px}
+}
+@media (prefers-reduced-motion:reduce){.ring{transition:none}}
+@media print{
+  .tools,.addcard,footer .tip{display:none!important}
+  body{background:#fff}
+}
+/* ===== โหมดนำเสนอ ===== */
+.ring li,.ring .t,.ring,.stage .card,.wires{transition:opacity .45s ease, background-color .45s ease, color .45s ease}
+.cap-on .ring:not(.has-hl){opacity:.28}
+.cap-on .ring li:not(.hl){opacity:.3}
+.cap-on .ring li.hl,.cap-on .ring .t.hl{background:#FFD84D;color:#15202B!important;border-radius:6px;outline:4px solid #FFD84D;font-weight:700;animation:hlpop .7s ease-out both;position:relative;z-index:1}
+.cap-on .ring li.hl::before{background:#15202B!important}
+.cap-on .ring.has-hl{box-shadow:0 0 0 4px color-mix(in srgb,#FFD84D 55%,transparent)}
+.phase-on .stage .card{opacity:.22}
+@keyframes hlpop{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
+.pbar{position:fixed;z-index:41;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));
+  background:#10243E;color:#fff;border-radius:14px;padding:8px 12px;display:none;align-items:center;gap:10px;width:min(760px,94vw);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.presenting .pbar{display:flex}
+.pbar button{background:transparent;border:0;color:#fff;font-size:17px;cursor:pointer;padding:4px 6px;border-radius:6px}
+.pbar button:hover{background:rgba(255,255,255,.12)}
+.pbar .clock{font-variant-numeric:tabular-nums;font-size:16px;white-space:nowrap}
+.track{position:relative;flex:1;height:26px;cursor:pointer}
+.track .seg{position:absolute;top:8px;height:10px;border-radius:3px;background:#2E4868;overflow:hidden}
+.track .seg.cur{background:#3B5C84}
+.track .seg span{position:absolute;left:0;top:0;bottom:0;background:#FFD84D}
+.track .lab{position:absolute;top:-8px;font-size:12px;color:#9FB2C8;white-space:nowrap}
+.presenting footer{padding-bottom:90px}
+.presenting .sub,.presenting .legend,.presenting .tools,.presenting header{display:none}
+.presenting header{padding:12px 24px 0}
+.presenting .stats{display:none}
+.presenting .phone h2{font-size:24px}
+.presenting main{padding:8px 12px 0;max-width:none}
+.presenting body,.presenting{overflow:hidden}
+.presenting footer{display:none}
+/* banner inside phone */
+.pban{display:none;height:200px;margin:0 0 14px;border-radius:16px;background:linear-gradient(135deg,#1C3A5E,#15304F);border:1.5px solid #FFD84D;
+  padding:12px 16px;overflow:hidden;color:#fff;position:relative}
+.presenting .pban{display:block}
+.presenting .phone .hint{display:none}
+.pban.flash{animation:banin .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes banin{0%{opacity:0;transform:translateY(-10px) scale(.96)}100%{opacity:1;transform:none}}
+.pban .pill{display:inline-block;background:#FFD84D;color:#15202B;font-weight:700;font-size:15px;border-radius:999px;padding:1px 10px}
+.pban .tm{font-size:12px;color:#9FB2C8;margin-left:8px}
+.pban h5{margin:6px 0 4px;font-size:24px;line-height:1.25;font-weight:700}
+.pban ul{margin:0 0 6px;padding:0;list-style:none;font-size:13px;color:#D6E2EE;line-height:1.45}
+.pban li::before{content:"▸ ";color:#FFD84D}
+.pban .row{display:flex;flex-wrap:wrap;gap:5px 6px;align-items:center;font-size:14.5px}
+.pban .row b{color:#9FB2C8;font-weight:600;margin-right:2px}
+.pban .chip{background:rgba(255,216,77,.16);border:1px solid rgba(255,216,77,.55);color:#FFE88A;border-radius:999px;padding:0 8px}
+.pban .chip.sh{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.35);color:#fff}
+/* ghost (capability named in script, not yet on diagram) */
+.ring li.ghost .new{font-size:.72em;background:#15202B;color:#FFD84D;border-radius:4px;padding:0 4px;margin-left:5px;vertical-align:1px}
+.cap-on .ring.compact li:not(.hl){display:none}
+/* stakeholder emphasis */
+.phase-on .stage .card.shl{opacity:1;box-shadow:0 0 0 3px #FFD84D,0 10px 26px rgba(16,36,62,.2);z-index:3}
+.phase-on .stage .card.shl .avatar{animation:hlpop .8s ease-out both}
+.phase-on .stage .card li.hl{background:#FFD84D;color:#15202B;border-radius:5px;outline:3px solid #FFD84D;font-weight:700}
+.phase-on .stage .card.part li:not(.hl){opacity:.45}
+.phase-on .wires{opacity:1}
+.phase-on .wires line{opacity:.2}
+.phase-on .wires line.on{opacity:1;stroke:#E0B400;stroke-width:3.5;stroke-dasharray:none}
+.phase-on .wires circle{opacity:.2}.phase-on .wires circle.on{opacity:1;fill:#E0B400}
+.stage .card.shl{transition:box-shadow .45s,opacity .45s}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>TCS Platform</h1>
+    <p class="sub">Business Architecture ตามกรอบ Gartner DBTP — 1 มือถือคือ 1 Platform ข้างในมี 5 ห่วงความสามารถ ผู้มีส่วนได้ส่วนเสียหลักล้อมรอบ 360 องศา</p>
+  </div>
+  <div class="tools">
+    <button id="bPresent" style="background:#FFD84D;border-color:#E0B800;color:#15202B;font-weight:600">▶ เริ่มนำเสนอ 10 นาที</button>
+    <button id="bEdit" aria-pressed="false">✏️ แก้ไข</button>
+    <button id="bCopy">📋 คัดลอก JSON</button>
+    <button id="bImport">📥 นำเข้า JSON</button>
+    <button id="bPrint">🖨 พิมพ์ / PDF</button>
+    <button id="bAuto">⤧ จัดวางอัตโนมัติ</button>
+    <button id="bReset">↺ ค่าเริ่มต้น</button>
+  </div>
+</header>
+<div class="legend" id="legend"></div>
+
+<main id="main">
+  <div class="fit" id="fit">
+    <div class="stage" id="stage">
+      <svg class="wires" id="wires"></svg>
+      <section class="phone" id="phone" aria-label="TCS Platform">
+        <div class="notch"></div>
+        <h2 id="phoneTitle">TCS Platform</h2>
+        <p class="hint">คลิกห่วงเพื่อโฟกัส · ลากการ์ดรอบข้างเพื่อจัดวาง</p>
+        <div class="pban" id="pban" role="status" aria-live="polite"></div>
+        <div class="screen" id="screen"></div>
+        <div class="stats" id="stats"></div>
+      </section>
+      <div id="cards"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>ข้อมูลตั้งต้นจาก DBTP Executive View (มุมมอง TCS, ก.ย. 2026) — หัวข้อระดับ Platform ไม่ลง Activity <span class="tip">· การแก้ไขเก็บไว้ในเบราว์เซอร์นี้เท่านั้น ใช้ “คัดลอก JSON” เพื่อสำรองหรือส่งต่อ</span></p>
+</footer>
+
+<div class="pbar" id="pbar" aria-label="ตัวควบคุมการนำเสนอ">
+  <button id="pPrev" title="ช่วงก่อนหน้า (←)">⏮</button>
+  <button id="pPlay" title="เล่น/หยุดชั่วคราว (Space)">⏸</button>
+  <button id="pNext" title="ช่วงถัดไป (→)">⏭</button>
+  <div class="track" id="track"></div>
+  <span class="clock" id="plabel" style="font-weight:600;color:#FFD84D">บทนำ</span>
+  <span class="clock" id="clock">0:00 / 10:00</span>
+  <button id="pFull" title="เต็มจอ (F)">⛶</button>
+  <button id="pStop" title="จบการนำเสนอ (Esc)">✕</button>
+</div>
+
+<dialog id="dlg">
+  <h4 id="dTitle">แก้ไข</h4>
+  <div id="dNameWrap"><label for="dName">หัวข้อ</label><input id="dName"></div>
+  <div id="dHueWrap"><label for="dHue">ประเภท (สีการ์ด)</label>
+    <select id="dHue"></select>
+    <label for="dSide">ลำดับรอบ Platform (เริ่มที่ด้านบน วนตามเข็มนาฬิกา)</label>
+    <select id="dSide"></select>
+  </div>
+  <label for="dItems" id="dItemsLbl">รายการ (บรรทัดละ 1 รายการ)</label>
+  <textarea id="dItems"></textarea>
+  <div class="drow">
+    <button class="del" id="dDel">ลบการ์ดนี้</button>
+    <button id="dCancel">ยกเลิก</button>
+    <button class="pri" id="dSave">บันทึก</button>
+  </div>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+const RINGS = {
+  cx : {th:"Customer Experience", en:"ช่องทางและประสบการณ์ลูกค้า"},
+  eco: {th:"Ecosystem", en:"พาร์ตเนอร์และระบบนิเวศ"},
+  da : {th:"Data & Analytics", en:"ข้อมูลและการวิเคราะห์ (ศูนย์กลาง)"},
+  iot: {th:"IoT", en:"อุปกรณ์ · เซ็นเซอร์ · หน้างาน"},
+  is : {th:"Information System", en:"ระบบงานหลักขององค์กร (ERP)"},
+};
+const HUES = {buyer:"ลูกค้า / ผู้ซื้อ", partner:"พาร์ตเนอร์ / ซัพพลายเออร์ / กำกับมาตรฐาน", comp:"Complementor / ผู้เกี่ยวข้องงบประมาณ", compet:"คู่แข่ง", biz:"Precise Business", admin:"Admin / กำกับ / ตรวจสอบ"};
+
+const DEFAULT = {
+  phone:"TCS Platform",
+  rings:{
+    cx :["Customer Engagement Hub","Digital Commerce Channel","LivePerson Chatbot","Content & Demand Hub","Self Pricing Engine"],
+    eco:["DE Integration","Financing Service"],
+    iot:["Base Energy & Power Quality Monitoring Map"],
+    is :["Standards & Compliance Technical Database","Sale & Operation Planning","Negotiation & Contract Mgmt","Reference-Price Survey","Cross-BU OrderMgmt"],
+    da :["Market & Demand Intelligence Center","Pipeline & Forecast Analytics","ICP & TAL Scoring","Customer/Sales Analytics","LCC Analysis","Generative AI Quote Builder"]},
+  sh:[
+    {hue:"partner",title:"หน่วยงานกำกับดูแล / มาตรฐาน",ents:["ISO / IEC","กระทรวงอุตสาหกรรม / พลังงาน","กนอ. · PEA / MEA","กกพ. · BOI · สมอ. · สวทช.","กรมทรัพย์สินทางปัญญา"]},
+    {hue:"buyer",title:"Buyer",ents:["End User","Main Contractor","KA (การไฟฟ้าแต่ละพื้นที่)"]},
+    {hue:"admin",title:"หน่วยงานตรวจสอบการจัดจ้าง",ents:["กรมบัญชีกลาง","ฝ่ายจัดซื้อองค์กร"]},
+    {hue:"comp",title:"ผู้เกี่ยวข้องการตั้งงบประมาณ",ents:["สำนักงานนโยบายพลังงานแห่งชาติ","กรมพัฒนาพลังงานทดแทนและอนุรักษ์พลังงาน","สำนักงบประมาณ","ครม. / รัฐสภา","ฝ่ายวิศวกรรมซ่อมบำรุง","ผู้จัดการฝ่าย / เจ้าของงบประมาณ","ผู้บริหารสูงสุด / คณะกรรมการบริหาร","องค์กรปกครองส่วนท้องถิ่น (อปท.)"]},
+    {hue:"biz",title:"Precise Business",ents:["TCS Sale","S&OP","Digital Engineering","Business Manager"]},
+    {hue:"admin",title:"Precise Information Center",ents:["ศูนย์กลางรวบรวมและจัดการข้อมูลสินค้า","และรายชื่อลูกค้าที่สามารถก่อให้เกิดโอกาส"]},
+    {hue:"compet",title:"Competitor",ents:[]}]
+};
+
+const KEY = "tcs-dbtp-view-v2";
+const clone = o => JSON.parse(JSON.stringify(o));
+let data = clone(DEFAULT);
+try{ const s = localStorage.getItem(KEY); if(s){ const p = JSON.parse(s); if(p && p.rings && p.sh) data = p; } }catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(data)); }catch(e){} }
+
+let editMode = false, focus = null, ctx = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(){
+  $("phoneTitle").textContent = data.phone;
+  document.title = data.phone + " — Business Architecture × DBTP";
+  $("main").classList.toggle("edit", editMode);
+
+  const scr = $("screen"); scr.innerHTML = "";
+  for(const k of ["cx","eco","da","iot","is"]){
+    const items = data.rings[k] || [];
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = `ring r-${k}${k==="da"?" da":""}`;
+    b.style.setProperty("--rc", `var(--${k})`);
+    b.dataset.k = k;
+    b.innerHTML = `<span class="t">${RINGS[k].th}</span><span class="e">${RINGS[k].en}</span>
+      <ul>${items.length ? items.map(i=>`<li>${esc(i)}</li>`).join("") : `<li><i>— ยังไม่มี —</i></li>`}</ul>`;
+    b.setAttribute("aria-label", `${RINGS[k].th}: ${items.join(", ")||"ยังไม่มี"}`);
+    b.addEventListener("click", () => editMode ? openRing(k) : toggleFocus(k));
+    scr.appendChild(b);
+  }
+  applyFocus();
+
+  const total = Object.values(data.rings).reduce((a,r)=>a+r.length,0);
+  $("stats").innerHTML = Object.keys(RINGS).map(k=>`<span>${RINGS[k].th} <b>${data.rings[k].length}</b></span>`).join("")
+    + `<span>รวม <b>${total}</b> Capability</span>`;
+
+  const AV = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4.6"/><path d="M3.2 21.2c.6-4.6 4.2-7.6 8.8-7.6s8.2 3 8.8 7.6c-2.4 1.6-5.5 2.4-8.8 2.4s-6.4-.8-8.8-2.4z"/></svg>`;
+  const box = $("cards"); box.innerHTML = "";
+  data.sh.forEach((s, i) => {
+    const d = document.createElement("article");
+    d.className = "card" + (s.pos ? " moved" : ""); d.style.setProperty("--c", `var(--${s.hue})`);
+    d.dataset.i = i;
+    d.tabIndex = editMode ? 0 : -1;
+    d.addEventListener("pointerdown", startDrag);
+    d.innerHTML = `<span class="avatar">${AV}</span><h3>${esc(s.title)}</h3>` + (s.ents.length
+      ? `<ul>${s.ents.map(e=>`<li>${esc(e)}</li>`).join("")}</ul>`
+      : `<p class="empty">ยังไม่ระบุ${editMode?" — คลิกเพื่อเพิ่ม":""}</p>`);
+    d.addEventListener("click", () => { if(justDragged) return; if(editMode) openCard(i); });
+    d.addEventListener("keydown", e => { if(editMode && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); openCard(i);} });
+    box.appendChild(d);
+  });
+  const add = document.createElement("button");
+  add.className = "addcard"; add.textContent = "+ เพิ่มการ์ด Stakeholder";
+  add.addEventListener("click", () => openCard(-1));
+  box.appendChild(add);
+  layout();
+}
+
+/* ===== วางการ์ดรอบ Platform 360° ===== */
+function layout(){
+  const fit = $("fit"), stage = $("stage"), phone = $("phone");
+  const presenting = document.body.classList.contains("presenting");
+  const narrow = !presenting && fit.clientWidth < 760;
+  $("main").classList.toggle("stack", narrow);
+  if(narrow){ return; }
+  const cards = [...$("cards").querySelectorAll(".card")];
+  const add = $("cards").querySelector(".addcard");
+  const pw = phone.offsetWidth, ph = phone.offsetHeight, GAP = 46, CG = 18;
+  const placed = [];
+  const n = cards.length;
+  /* วงรอบ Platform แบบจอกว้าง: บน/ล่างตรงกลาง + ซ้าย/ขวาเป็นแนวโค้ง */
+  const auto = cards.map((c, i) => {
+    const w = c.offsetWidth, h = c.offsetHeight;
+    const th = -Math.PI/2 + 2*Math.PI*i/Math.max(n,1);
+    const cs = Math.cos(th), sn = Math.sin(th);
+    let x, y, zone;
+    if(Math.abs(cs) < 0.2){            /* ตรงบน / ตรงล่าง */
+      x = cs * 300; y = Math.sign(sn) * (ph/2 + GAP + h/2); zone = sn < 0 ? "T" : "B";
+    } else {                            /* ด้านข้าง: โค้งออกตามมุม */
+      x = Math.sign(cs) * (pw/2 + GAP + w/2 + Math.abs(cs) * 70);
+      y = sn * (ph/2 - 40); zone = cs > 0 ? "R" : "L";
+    }
+    return {c, i:+c.dataset.i, w, h, x, y, zone};
+  });
+  /* กันการ์ดด้านเดียวกันทับกัน */
+  for(const z of ["L","R"]){
+    const g = auto.filter(q => q.zone === z).sort((a,b) => a.y - b.y);
+    for(let k=1;k<g.length;k++){
+      const min = g[k-1].y + g[k-1].h/2 + CG + g[k].h/2;
+      if(g[k].y < min) g[k].y = min;
+    }
+    if(g.length){
+      const top = g[0].y - g[0].h/2, bot = g[g.length-1].y + g[g.length-1].h/2;
+      const lim = ph/2 + 60, shift = (top < -lim || bot > lim) ? -((top + bot)/2) : 0;
+      g.forEach(q => q.y += shift);
+    }
+  }
+  auto.forEach(q => {
+    const man = data.sh[q.i].pos;
+    placed.push({el:q.c, i:q.i, x: man ? man.x : q.x, y: man ? man.y : q.y, w:q.w, h:q.h});
+  });
+  /* bounding box */
+  let minX = -pw/2, maxX = pw/2, minY = -ph/2, maxY = ph/2;
+  placed.forEach(q => { minX = Math.min(minX, q.x-q.w/2); maxX = Math.max(maxX, q.x+q.w/2);
+                        minY = Math.min(minY, q.y-q.h/2); maxY = Math.max(maxY, q.y+q.h/2); });
+  const PAD = 12, ox = -minX + PAD, oy = -minY + PAD;
+  const W = maxX - minX + PAD*2, H = maxY - minY + PAD*2 + (editMode ? 56 : 0);
+  phone.style.left = (ox - pw/2) + "px"; phone.style.top = (oy - ph/2) + "px";
+  placed.forEach(q => { q.el.style.left = (ox + q.x - q.w/2) + "px"; q.el.style.top = (oy + q.y - q.h/2) + "px"; });
+  if(add){ add.style.left = (W/2 - 110) + "px"; add.style.top = (H - 50) + "px"; add.style.width = "220px"; }
+  const wires = $("wires"); wires.setAttribute("width", W); wires.setAttribute("height", H);
+  G = {placed, ox, oy, pw, ph, sc:1};
+  drawWires();
+  stage.style.width = W + "px"; stage.style.height = H + "px";
+  let sc = Math.min(1, fit.clientWidth / W);
+  if(document.body.classList.contains("presenting")){
+    const bar = $("pbar").offsetHeight || 60;
+    const availH = window.innerHeight - fit.getBoundingClientRect().top - bar - 28;
+    const availW = document.documentElement.clientWidth - 24;
+    sc = Math.max(.2, Math.min(availW / W, availH / H, 2));
+  }
+  G.sc = sc;
+  stage.style.transform = `scale(${sc})`;
+  fit.style.height = (H*sc) + "px";
+  stage.style.left = Math.max(0, (fit.clientWidth - W*sc)/2) + "px";
+}
+let G = null, drag = null, justDragged = false;
+function drawWires(){
+  if(!G) return;
+  const {ox, oy, pw, ph} = G;
+  $("wires").innerHTML = G.placed.map(q => {
+    const len = Math.hypot(q.x, q.y) || 1, ux = q.x/len, uy = q.y/len;
+    const k = Math.min((pw/2)/Math.max(Math.abs(ux),1e-9), (ph/2)/Math.max(Math.abs(uy),1e-9));
+    const on = q.el.classList.contains("shl") ? ' class="on"' : "";
+    return `<line${on} x1="${ox+q.x}" y1="${oy+q.y}" x2="${ox+ux*k}" y2="${oy+uy*k}"/><circle${on} cx="${ox+ux*k}" cy="${oy+uy*k}" r="5"/>`;
+  }).join("");
+}
+/* ===== ลากย้ายการ์ด ===== */
+function startDrag(e){
+  if(!G || $("main").classList.contains("stack") || e.button > 0) return;
+  const q = G.placed.find(p => p.el === e.currentTarget); if(!q) return;
+  drag = {q, sx:e.clientX, sy:e.clientY, x0:q.x, y0:q.y, moved:false};
+  e.currentTarget.setPointerCapture(e.pointerId);
+  e.currentTarget.addEventListener("pointermove", moveDrag);
+  e.currentTarget.addEventListener("pointerup", endDrag, {once:true});
+  e.currentTarget.addEventListener("pointercancel", endDrag, {once:true});
+}
+function moveDrag(e){
+  if(!drag) return;
+  const dx = (e.clientX - drag.sx)/G.sc, dy = (e.clientY - drag.sy)/G.sc;
+  if(!drag.moved && Math.hypot(dx, dy) < 4) return;
+  drag.moved = true; drag.q.el.classList.add("dragging");
+  let nx = drag.x0 + dx, ny = drag.y0 + dy;
+  if(e.shiftKey){ nx = Math.round(nx/20)*20; ny = Math.round(ny/20)*20; }
+  drag.q.x = nx; drag.q.y = ny;
+  drag.q.el.style.left = (G.ox + nx - drag.q.w/2) + "px";
+  drag.q.el.style.top  = (G.oy + ny - drag.q.h/2) + "px";
+  drawWires();
+}
+function endDrag(e){
+  const el = e.currentTarget; el.removeEventListener("pointermove", moveDrag);
+  if(!drag) return;
+  if(drag.moved){
+    data.sh[drag.q.i].pos = {x:Math.round(drag.q.x), y:Math.round(drag.q.y)};
+    save(); justDragged = true; setTimeout(() => justDragged = false, 0);
+    el.classList.remove("dragging"); el.classList.add("moved");
+    drag = null; layout(); toast("ย้ายการ์ดแล้ว");
+  } else drag = null;
+}
+$("bAuto").addEventListener("click", () => {
+  if(!data.sh.some(s => s.pos)){ toast("ทุกการ์ดจัดวางอัตโนมัติอยู่แล้ว"); return; }
+  if(confirm("ล้างตำแหน่งที่ลากไว้ แล้วจัดวางรอบ Platform ใหม่อัตโนมัติ?")){
+    data.sh.forEach(s => delete s.pos); save(); render(); toast("จัดวางอัตโนมัติแล้ว"); }
+});
+window.addEventListener("resize", () => { clearTimeout(window._rt); window._rt = setTimeout(layout, 80); });
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
+
+function toggleFocus(k){ focus = focus===k ? null : k; applyFocus(); }
+function applyFocus(){
+  document.querySelectorAll(".ring").forEach(r=>{
+    r.classList.toggle("dim", !!focus && r.dataset.k!==focus);
+    r.classList.toggle("focus", r.dataset.k===focus);
+  });
+}
+
+/* editor */
+const dlg = $("dlg");
+$("dHue").innerHTML = Object.entries(HUES).map(([k,v])=>`<option value="${k}">${v}</option>`).join("");
+const lines = t => t.split("\n").map(s=>s.trim()).filter(Boolean);
+
+function openRing(k){
+  ctx = {type:"ring", k};
+  $("dTitle").textContent = `แก้ไขห่วง ${RINGS[k].th}`;
+  $("dNameWrap").hidden = true; $("dHueWrap").hidden = true; $("dDel").hidden = true;
+  $("dItemsLbl").hidden = false; $("dItems").hidden = false;
+  $("dItems").value = data.rings[k].join("\n");
+  dlg.showModal(); $("dItems").focus();
+}
+function openCard(i, side){
+  const s = i>=0 ? data.sh[i] : {hue:"buyer", title:"", ents:[]};
+  ctx = {type:"card", i};
+  const cnt = data.sh.length + (i>=0?0:1);
+  $("dSide").innerHTML = Array.from({length:cnt},(_,k)=>`<option value="${k}">ตำแหน่งที่ ${k+1}</option>`).join("");
+  $("dTitle").textContent = i>=0 ? "แก้ไขการ์ด Stakeholder" : "เพิ่มการ์ด Stakeholder";
+  $("dNameWrap").hidden = false; $("dHueWrap").hidden = false; $("dDel").hidden = i<0;
+  $("dItemsLbl").hidden = false; $("dItems").hidden = false;
+  $("dName").value = s.title; $("dHue").value = s.hue; $("dSide").value = String(i>=0?i:cnt-1);
+  $("dItems").value = s.ents.join("\n");
+  dlg.showModal(); $("dName").focus();
+}
+function openPhone(){
+  ctx = {type:"phone"};
+  $("dTitle").textContent = "แก้ไขชื่อ Platform";
+  $("dNameWrap").hidden = false; $("dHueWrap").hidden = true; $("dDel").hidden = true;
+  $("dItemsLbl").hidden = true; $("dItems").hidden = true;
+  $("dName").value = data.phone;
+  dlg.showModal(); $("dName").focus();
+}
+$("phoneTitle").addEventListener("click", () => { if(editMode) openPhone(); });
+
+$("dSave").addEventListener("click", () => {
+  if(ctx.type==="ring") data.rings[ctx.k] = lines($("dItems").value);
+  else if(ctx.type==="phone") data.phone = $("dName").value.trim() || "TCS Platform";
+  else {
+    const keep = ctx.i>=0 ? data.sh[ctx.i].pos : undefined;
+    const obj = {pos:keep, hue:$("dHue").value, title:$("dName").value.trim()||"ไม่มีชื่อ", ents:lines($("dItems").value)};
+    if(ctx.i>=0) data.sh.splice(ctx.i,1);
+    data.sh.splice(Math.min(+$("dSide").value, data.sh.length), 0, obj);
+  }
+  save(); dlg.close(); render(); toast("บันทึกแล้ว");
+});
+$("dDel").addEventListener("click", () => {
+  if(ctx.type==="card" && ctx.i>=0 && confirm("ลบการ์ดนี้?")){ data.sh.splice(ctx.i,1); save(); dlg.close(); render(); toast("ลบการ์ดแล้ว"); }
+});
+$("dCancel").addEventListener("click", () => dlg.close());
+
+/* toolbar */
+$("bEdit").addEventListener("click", e => {
+  editMode = !editMode; focus = null;
+  e.currentTarget.setAttribute("aria-pressed", editMode);
+  document.querySelector(".hint").textContent = editMode ? "โหมดแก้ไข: คลิกห่วง การ์ด หรือชื่อ Platform เพื่อแก้" : "คลิกห่วงเพื่อโฟกัส · ลากการ์ดรอบข้างเพื่อจัดวาง";
+  render();
+});
+$("bCopy").addEventListener("click", async () => {
+  const s = JSON.stringify(data, null, 2);
+  try{ await navigator.clipboard.writeText(s); toast("คัดลอก JSON แล้ว"); }
+  catch(e){ prompt("คัดลอก JSON ด้านล่าง", s); }
+});
+$("bImport").addEventListener("click", () => {
+  const s = prompt("วาง JSON ที่คัดลอกไว้");
+  if(!s) return;
+  try{ const p = JSON.parse(s); if(!p.rings || !p.sh) throw 0;
+    for(const k of Object.keys(RINGS)) p.rings[k] = p.rings[k] || [];
+    data = p; save(); render(); toast("นำเข้าเรียบร้อย");
+  }catch(e){ toast("JSON ไม่ถูกต้อง — ต้องมี rings และ sh"); }
+});
+$("bPrint").addEventListener("click", () => window.print());
+$("bReset").addEventListener("click", () => {
+  if(confirm("คืนค่าเริ่มต้นทั้งหมด? การแก้ไขในเบราว์เซอร์นี้จะหายไป")){ data = clone(DEFAULT); save(); render(); toast("คืนค่าเริ่มต้นแล้ว"); }
+});
+
+$("legend").innerHTML = Object.entries(HUES).map(([k,v])=>`<span style="--c:var(--${k})">${v}</span>`).join("");
+
+let tt; function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove("on"),1800); }
+
+/* ===== โหมดนำเสนออัตโนมัติ (ตาม Speaker Script) ===== */
+const PHASES = [
+  {start:0, end:90, ph:"0:00 – 1:30", pill:"บทนำ", label:"กวาดดีมานด์ สู่ Business Generation",
+   pts:["5 ห่วงดิจิทัล DBTP เปลี่ยนโอกาสเป็นมูลค่าทางธุรกิจจริง","กวาดดีมานด์จากผู้ตั้งงบประมาณ ควบคู่กลุ่ม Buyer"],
+   kw:[], sh:[]},
+  {start:90, end:270, ph:"1:30 – 4:30", pill:"แผนระยะที่ 2", label:"Data Scoring & One Stop Service",
+   pts:["OI — คัดกรองลูกค้าที่มีงบและศักยภาพสูงสุด พุ่งตรงผู้มีอำนาจตัดสินใจ","OQ — BOQ + ใบเสนอราคาภายใน 1 วัน · บริการจบในจุดเดียว"],
+   kw:["Data & Analytics","Pipeline & Forecast","Customer/Sales Analytics","ICP & TAL Scoring","Information System","Generative AI Quote Builder","LCC Analysis","Pricing Engine",
+       {k:"Digital Communication Channel", ring:"cx"},{k:"BillPay", ring:"cx"}],
+   sh:[{t:"Buyer"},{t:"ผู้เกี่ยวข้องการตั้งงบประมาณ", e:["ผู้จัดการฝ่าย","ผู้บริหารสูงสุด"]},{t:"Precise Business", e:["TCS Sale"]}]},
+  {start:270, end:420, ph:"4:30 – 7:00", pill:"แผนระยะที่ 3", label:"Recurring Business Generation",
+   pts:["CRM รักษาฐานลูกค้าเดิม → Renewal Contracts & Repeat Business","IoT ฟีดข้อมูลหน้างาน → แจ้งบำรุงรักษา · Cross-sell / Up-sell"],
+   kw:["Ecosystem","IoT",{k:"Global Brand", ring:"cx"},"Customer Engagement",{k:"PR & Event", ring:"cx"},{k:"Content & Renewal Hub", ring:"cx"},"Base Energy & Power Quality Monitoring"],
+   sh:[{t:"Buyer", e:["End User","KA"]},{t:"ผู้เกี่ยวข้องการตั้งงบประมาณ", e:["ฝ่ายวิศวกรรมซ่อมบำรุง"]}]},
+  {start:420, end:540, ph:"7:00 – 9:00", pill:"แผนระยะที่ 4", label:"Demand Intelligence Center & ปิดดีลระดับองค์กร",
+   pts:["สร้าง Demand ก่อนคู่แข่ง · ร่วมตั้งงบประมาณกับผู้บริหารตั้งแต่ต้นน้ำ","ข้อเสนอสอดคล้องกรมบัญชีกลาง · ฝ่ายจัดซื้อ · หน่วยงานกำกับ"],
+   kw:["Market & Demand Intelligence","Information System","Standards & Compliance","Technical Database","S&OP","Negotiation & Contract Mgmt","Cross-BU OrderMgmt"],
+   sh:[{t:"หน่วยงานกำกับดูแล"},{t:"หน่วยงานตรวจสอบการจัดจ้าง"},{t:"ผู้เกี่ยวข้องการตั้งงบประมาณ", e:["ผู้บริหารสูงสุด","ผู้จัดการฝ่าย","สำนักงบประมาณ"]},{t:"Competitor"}]},
+  {start:540, end:600, ph:"9:00 – 10:00", pill:"สรุป", label:"กวาด → กอง → เก็บ สู่ Business Generation ยั่งยืน",
+   pts:["ระยะ 2: คัดกรองแม่นยำ · เสนอราคา 1 วัน · One Stop Service","ระยะ 3: CRM + IoT → Recurring  ·  ระยะ 4: Intelligence Center → ดีลใหญ่"],
+   kw:[], sh:[]},
+];
+const TOTAL = PHASES[PHASES.length-1].end;
+const ALIAS = {"s&op":"sale & operation planning"};
+const norm = t => String(t).toLowerCase().replace(/\s+/g," ").trim();
+const squash = t => norm(t).replace(/[^a-z0-9ก-๙&/]/g,"");
+const kwOf = k => typeof k === "string" ? k : k.k;
+function kwMatch(text, kw){
+  const a = squash(text), k = squash(ALIAS[norm(kw)] || kw);
+  return k.length > 2 && (a.includes(k) || (k.includes(a) && a.length > 5));
+}
+const pres = {on:false, playing:false, t:0, last:0, idx:-1, timer:null};
+const fmt = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`;
+
+function buildTrack(){
+  $("track").innerHTML = PHASES.map((p,i)=>`<div class="seg" data-i="${i}" style="left:${p.start/TOTAL*100}%;width:calc(${(p.end-p.start)/TOTAL*100}% - 3px)"><span></span></div>
+    <div class="lab" style="left:${p.start/TOTAL*100}%">${p.pill.replace("แผนระยะที่ ","ระยะ ")}</div>`).join("");
+}
+function clearPhase(){
+  $("main").classList.remove("phase-on","cap-on");
+  document.querySelectorAll(".ring li.ghost").forEach(e => e.remove());
+  document.querySelectorAll(".hl,.has-hl,.compact,.shl,.part").forEach(e => e.classList.remove("hl","has-hl","compact","shl","part"));
+}
+function applyPhase(i, announce){
+  clearPhase();
+  const p = PHASES[i]; if(!pres.on || !p) return;
+  const on = p.all || p.kw.length > 0 || p.sh.length > 0;
+  $("main").classList.toggle("phase-on", on);
+  $("main").classList.toggle("cap-on", p.all || p.kw.length > 0);
+  if(p.all){
+    document.querySelectorAll(".ring").forEach(r => { r.classList.add("has-hl"); r.querySelectorAll("li, .t").forEach(el => el.classList.add("hl")); });
+    document.querySelectorAll(".stage .card").forEach(c => c.classList.add("shl"));
+    drawWires();
+    document.querySelectorAll("#track .seg").forEach(s => s.classList.toggle("cur", +s.dataset.i === i));
+    showBanner(p, announce); return;
+  }
+  /* capabilities */
+  const found = new Set();
+  document.querySelectorAll(".ring").forEach(r => {
+    let any = false;
+    r.querySelectorAll("li, .t").forEach(el => {
+      const hit = p.kw.some(k => { const m = kwMatch(el.textContent, kwOf(k)); if(m) found.add(kwOf(k)); return m; });
+      if(hit){ el.classList.add("hl"); any = true; }
+    });
+    if(any) r.classList.add("has-hl");
+  });
+  /* ghost: ความสามารถที่อยู่ใน Script แต่ยังไม่มีในภาพ */
+  p.kw.filter(k => typeof k !== "string" && !found.has(k.k)).forEach(k => {
+    const r = document.querySelector(`.ring[data-k="${k.ring}"]`); if(!r) return;
+    const li = document.createElement("li"); li.className = "ghost hl";
+    li.textContent = k.k;
+    r.querySelector("ul").appendChild(li); r.classList.add("has-hl","compact");
+  });
+  /* stakeholders */
+  document.querySelectorAll(".stage .card").forEach(c => {
+    const title = c.querySelector("h3").textContent;
+    const rule = p.sh.find(s => squash(title).includes(squash(s.t)));
+    if(!rule) return;
+    c.classList.add("shl");
+    if(rule.e){
+      c.classList.add("part");
+      c.querySelectorAll("li").forEach(li => { if(rule.e.some(e => squash(li.textContent).includes(squash(e)))) li.classList.add("hl"); });
+    }
+  });
+  drawWires();
+  document.querySelectorAll("#track .seg").forEach(s => s.classList.toggle("cur", +s.dataset.i === i));
+  showBanner(p, announce);
+}
+function showBanner(p, flash){
+  const b = $("pban"); $("plabel").textContent = p.pill;
+  const caps = p.kw.map(kwOf).filter(k => !["Ecosystem","IoT","Data & Analytics","Information System"].includes(k));
+  const shl = p.all ? [{t:`ครบทุกกลุ่ม ${data.sh.length} Stakeholder`}] : p.sh;
+  b.innerHTML = `<span class="pill">${esc(p.pill)}</span>
+    <h5>${esc(p.label)}</h5><ul>${p.pts.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>` +
+    (shl.length ? `<div class="row"><b>Stakeholder</b>${shl.map(s=>`<span class="chip sh">${esc(s.t)}</span>`).join("")}</div>` : "");
+  if(flash){ b.classList.remove("flash"); void b.offsetWidth; b.classList.add("flash"); }
+}
+function tick(){
+  const now = performance.now();
+  if(pres.playing){ pres.t += (now - pres.last)/1000; }
+  pres.last = now;
+  if(pres.t >= TOTAL){ pres.t = TOTAL; endPres(true); return; }
+  const i = PHASES.findIndex(p => pres.t >= p.start && pres.t < p.end);
+  if(i !== pres.idx){ pres.idx = i; applyPhase(i, true); }
+  $("clock").textContent = `${fmt(pres.t)} / ${fmt(TOTAL)}`;
+  document.querySelectorAll("#track .seg").forEach((s,k) => {
+    const p = PHASES[k]; const f = Math.max(0, Math.min(1, (pres.t - p.start)/(p.end - p.start)));
+    s.firstElementChild.style.width = (f*100) + "%";
+  });
+}
+function startPres(){
+  if(editMode) $("bEdit").click();
+  pres.on = true; pres.playing = true; pres.t = 0; pres.idx = -1; pres.last = performance.now();
+  document.body.classList.add("presenting"); buildTrack(); window.scrollTo(0,0); layout(); setTimeout(layout, 400);
+  $("pPlay").textContent = "⏸";
+  try{ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(()=>{}); }catch(e){}
+  clearInterval(pres.timer); pres.timer = setInterval(tick, 200); tick();
+}
+function endPres(finished){
+  clearInterval(pres.timer);
+  pres.on = false; pres.playing = false; pres.idx = -1;
+  clearPhase(); document.body.classList.remove("presenting"); layout(); drawWires(); setTimeout(layout, 400);
+  try{ document.fullscreenElement && document.exitFullscreen(); }catch(e){}
+  if(finished) toast("จบการนำเสนอ — กลับสู่ภาพรวม");
+}
+function jump(i){ i = Math.max(0, Math.min(PHASES.length-1, i)); pres.t = PHASES[i].start + .01; pres.idx = -1; tick(); }
+function togglePlay(){ pres.playing = !pres.playing; pres.last = performance.now(); $("pPlay").textContent = pres.playing ? "⏸" : "▶"; }
+$("bPresent").addEventListener("click", startPres);
+$("pPlay").addEventListener("click", togglePlay);
+$("pPrev").addEventListener("click", () => jump((pres.idx < 0 ? 0 : pres.idx) - 1));
+$("pNext").addEventListener("click", () => jump((pres.idx < 0 ? 0 : pres.idx) + 1));
+$("pStop").addEventListener("click", () => endPres(false));
+function toggleFull(){
+  try{
+    if(document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(()=>{});
+  }catch(e){}
+}
+$("pFull").addEventListener("click", toggleFull);
+document.addEventListener("fullscreenchange", () => setTimeout(layout, 120));
+$("track").addEventListener("click", e => {
+  const r = e.currentTarget.getBoundingClientRect();
+  pres.t = Math.max(0, Math.min(TOTAL-0.1, (e.clientX - r.left)/r.width*TOTAL)); pres.idx = -1; tick();
+});
+document.addEventListener("keydown", e => {
+  if(!pres.on || dlg.open) return;
+  if(e.key === " "){ e.preventDefault(); togglePlay(); }
+  else if(e.key === "ArrowRight") jump(pres.idx + 1);
+  else if(e.key === "ArrowLeft") jump(pres.idx - 1);
+  else if(e.key === "Escape" && !document.fullscreenElement) endPres(false);
+  else if(e.key === "f" || e.key === "F") toggleFull();
+});
+{ const baseRender = render; render = function(){ baseRender(); if(pres.on && pres.idx >= 0) applyPhase(pres.idx, false); }; }
+
+render();
+</script>
+</body>
+</html>
